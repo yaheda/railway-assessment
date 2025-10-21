@@ -1,6 +1,8 @@
 "use client"
 
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
 
 export function Navbar() {
   return (
@@ -38,17 +40,25 @@ export function Navbar() {
 
           {/* CTA Buttons */}
           <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              className="hidden sm:inline-flex text-sm"
-            >
-              Login
-            </Button>
-            <Button
-              className="text-sm"
-            >
-              Sign Up
-            </Button>
+            <SignedOut>
+              <Link href="/sign-in">
+                <Button
+                  variant="ghost"
+                  className="hidden sm:inline-flex text-sm"
+                >
+                  Login
+                </Button>
+              </Link>
+              <Link href="/sign-up">
+                <Button className="text-sm">Sign Up</Button>
+              </Link>
+            </SignedOut>
+            <SignedIn>
+              <Link href="/dashboard">
+                <Button className="text-sm">Dashboard</Button>
+              </Link>
+              <UserButton afterSignOutUrl="/" />
+            </SignedIn>
           </div>
         </div>
       </div>
