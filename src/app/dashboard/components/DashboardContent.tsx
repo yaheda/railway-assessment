@@ -6,6 +6,7 @@ import { Plus, Power, Trash2, Container, Activity, Clock } from "lucide-react";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
 import { Button } from "@/components/ui/button";
 import { ProjectSelector } from "./ProjectSelector";
+import { EnvironmentSelector } from "./EnvironmentSelector";
 
 interface Container {
   id: string;
@@ -57,9 +58,10 @@ export function DashboardContent() {
   const { workspaces, isLoading: workspacesLoading } = useWorkspaces();
   const [containers, setContainers] = useState<Container[]>(MOCK_CONTAINERS);
 
-  // Get current workspace and project from URL params
+  // Get current workspace, project and environment from URL params
   const currentWorkspaceId = searchParams.get("workspace");
   const selectedProjectId = searchParams.get("project");
+  const selectedEnvironmentId = searchParams.get("environment");
 
   // Get current workspace (default to first one)
   const currentWorkspace = useMemo(() => {
@@ -81,6 +83,27 @@ export function DashboardContent() {
 
     return [];
   }, [currentWorkspace]);
+
+  // Get current project (default to first one)
+  const currentProject = useMemo(() => {
+    if (selectedProjectId) {
+      return currentProjects.find((p) => p.id === selectedProjectId);
+    }
+    return currentProjects[0];
+  }, [currentProjects, selectedProjectId]);
+
+  // Get environments from current project
+  const currentEnvironments = useMemo(() => {
+    const project = currentProject;
+    if (!project) return [];
+
+    // Extract environments from project
+    if (project.environments && Array.isArray(project.environments)) {
+      return project.environments;
+    }
+
+    return [];
+  }, [currentProject]);
 
   const activeCount = containers.filter((c) => c.status === "running").length;
   const totalMemory = containers.reduce((sum, c) => {
@@ -109,7 +132,7 @@ export function DashboardContent() {
     <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center gap-4 mb-2">
+        <div className="flex items-center gap-4 mb-2 flex-wrap">
           <h1 className="text-4xl font-bold text-foreground">Dashboard</h1>
           {currentProjects.length > 0 && (
             <ProjectSelector
@@ -118,10 +141,18 @@ export function DashboardContent() {
               isLoading={workspacesLoading}
             />
           )}
+          {currentEnvironments.length > 0 && (
+            <EnvironmentSelector
+              environments={currentEnvironments}
+              selectedEnvironmentId={selectedEnvironmentId}
+              isLoading={workspacesLoading}
+            />
+          )}
         </div>
         <p className="text-foreground/60">
           Manage your containers and monitor their status
           {currentWorkspace && ` in ${currentWorkspace.name}`}
+          {currentProject && ` / ${currentProject.name}`}
         </p>
       </div>
 

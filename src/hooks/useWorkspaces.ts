@@ -2,9 +2,15 @@
 
 import { useEffect, useState, useCallback } from "react";
 
+export interface Environment {
+  id: string;
+  name: string;
+}
+
 export interface Project {
   id: string;
   name: string;
+  environments: Environment[];
 }
 
 export interface Workspace {

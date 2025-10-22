@@ -1,9 +1,31 @@
 import { NextResponse } from "next/server";
 
 // Types for Railway API response
+interface RailwayEnvironment {
+  name: string;
+  serviceInstances?: {
+    edges: Array<{
+      node: {
+        serviceName: string;
+        source?: {
+          image?: string;
+          repo?: string;
+        };
+      };
+    }>;
+  };
+}
+
+interface RailwayEnvironmentEdge {
+  node: RailwayEnvironment;
+}
+
 interface RailwayProject {
   id: string;
   name: string;
+  environments?: {
+    edges: RailwayEnvironmentEdge[];
+  };
 }
 
 interface RailwayProjectEdge {
@@ -18,9 +40,15 @@ interface RailwayWorkspace {
   };
 }
 
+interface TransformedEnvironment {
+  id: string;
+  name: string;
+}
+
 interface TransformedProject {
   id: string;
   name: string;
+  environments: TransformedEnvironment[];
 }
 
 interface TransformedWorkspace {
@@ -46,6 +74,24 @@ const WORKSPACES_QUERY = `
             node {
               name
               id
+              environments {
+                edges {
+                  node {
+                    name
+                    serviceInstances {
+                      edges {
+                        node {
+                          serviceName
+                          source {
+                            image
+                            repo
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -103,6 +149,10 @@ export async function GET() {
       projects: (ws.projects?.edges || []).map((edge) => ({
         id: edge.node.id,
         name: edge.node.name,
+        environments: (edge.node.environments?.edges || []).map((envEdge, index) => ({
+          id: `${edge.node.id}-env-${index}-${envEdge.node.name.toLowerCase().replace(/\s+/g, "-")}`,
+          name: envEdge.node.name,
+        })),
       })),
     }));
 
