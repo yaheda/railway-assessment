@@ -1,18 +1,26 @@
 import { NextResponse } from "next/server";
 
 // Types for Railway API response
+interface RailwayServiceInstance {
+  serviceName: string;
+  source?: {
+    image?: string;
+    repo?: string;
+  };
+  createdAt?: string;
+  latestDeployment?: {
+    status?: string;
+  };
+}
+
+interface RailwayServiceEdge {
+  node: RailwayServiceInstance;
+}
+
 interface RailwayEnvironment {
   name: string;
   serviceInstances?: {
-    edges: Array<{
-      node: {
-        serviceName: string;
-        source?: {
-          image?: string;
-          repo?: string;
-        };
-      };
-    }>;
+    edges: RailwayServiceEdge[];
   };
 }
 
@@ -40,9 +48,23 @@ interface RailwayWorkspace {
   };
 }
 
+interface TransformedServiceInstance {
+  id: string;
+  serviceName: string;
+  source?: {
+    image?: string;
+    repo?: string;
+  };
+  createdAt?: string;
+  latestDeployment?: {
+    status?: string;
+  };
+}
+
 interface TransformedEnvironment {
   id: string;
   name: string;
+  serviceInstances: TransformedServiceInstance[];
 }
 
 interface TransformedProject {
@@ -155,6 +177,15 @@ export async function GET() {
         environments: (edge.node.environments?.edges || []).map((envEdge, index) => ({
           id: `${edge.node.id}-env-${index}-${envEdge.node.name.toLowerCase().replace(/\s+/g, "-")}`,
           name: envEdge.node.name,
+          serviceInstances: (envEdge.node.serviceInstances?.edges || []).map(
+            (serviceEdge, serviceIndex) => ({
+              id: `${edge.node.id}-service-${serviceIndex}-${serviceEdge.node.serviceName.toLowerCase().replace(/\s+/g, "-")}`,
+              serviceName: serviceEdge.node.serviceName,
+              source: serviceEdge.node.source,
+              createdAt: serviceEdge.node.createdAt,
+              latestDeployment: serviceEdge.node.latestDeployment,
+            })
+          ),
         })),
       })),
     }));

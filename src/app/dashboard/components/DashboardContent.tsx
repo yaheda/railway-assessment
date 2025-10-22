@@ -1,62 +1,16 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Plus, Power, Trash2, Container, Activity, Clock } from "lucide-react";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
 import { Button } from "@/components/ui/button";
 import { ProjectSelector } from "./ProjectSelector";
 import { EnvironmentSelector } from "./EnvironmentSelector";
 
-interface Container {
-  id: string;
-  name: string;
-  status: "running" | "stopped";
-  memory: string;
-  cpu: string;
-  createdAt: Date;
-}
-
-// Mock data for containers
-const MOCK_CONTAINERS: Container[] = [
-  {
-    id: "1",
-    name: "web-app-prod",
-    status: "running",
-    memory: "512MB",
-    cpu: "0.5",
-    createdAt: new Date(2024, 9, 15),
-  },
-  {
-    id: "2",
-    name: "api-server-dev",
-    status: "running",
-    memory: "1GB",
-    cpu: "1.0",
-    createdAt: new Date(2024, 9, 10),
-  },
-  {
-    id: "3",
-    name: "cache-redis",
-    status: "stopped",
-    memory: "256MB",
-    cpu: "0.25",
-    createdAt: new Date(2024, 8, 20),
-  },
-  {
-    id: "4",
-    name: "worker-bg-tasks",
-    status: "running",
-    memory: "2GB",
-    cpu: "2.0",
-    createdAt: new Date(2024, 9, 1),
-  },
-];
-
 export function DashboardContent() {
   const searchParams = useSearchParams();
   const { workspaces, isLoading: workspacesLoading } = useWorkspaces();
-  const [containers, setContainers] = useState<Container[]>(MOCK_CONTAINERS);
 
   // Get current workspace, project and environment from URL params
   const currentWorkspaceId = searchParams.get("workspace");
@@ -105,28 +59,33 @@ export function DashboardContent() {
     return [];
   }, [currentProject]);
 
-  const activeCount = containers.filter((c) => c.status === "running").length;
-  const totalMemory = containers.reduce((sum, c) => {
-    const mb = parseInt(c.memory) * (c.memory.includes("GB") ? 1024 : 1);
-    return sum + mb;
-  }, 0);
+  // Get current environment (default to first one)
+  const currentEnvironment = useMemo(() => {
+    if (selectedEnvironmentId) {
+      return currentEnvironments.find((e) => e.id === selectedEnvironmentId);
+    }
+    return currentEnvironments[0];
+  }, [currentEnvironments, selectedEnvironmentId]);
 
-  const toggleContainer = (id: string) => {
-    setContainers(
-      containers.map((c) =>
-        c.id === id
-          ? {
-              ...c,
-              status: c.status === "running" ? "stopped" : "running",
-            }
-          : c
-      )
-    );
-  };
+  // Get services from current environment
+  const services = useMemo(() => {
+    const environment = currentEnvironment;
+    if (!environment) return [];
 
-  const deleteContainer = (id: string) => {
-    setContainers(containers.filter((c) => c.id !== id));
-  };
+    // Extract service instances from environment
+    if (
+      environment.serviceInstances &&
+      Array.isArray(environment.serviceInstances)
+    ) {
+      return environment.serviceInstances;
+    }
+
+    return [];
+  }, [currentEnvironment]);
+
+  // Calculate stats from services
+  const activeCount = services.length; // All services are considered "active" if they're listed
+  const totalMemory = 0; // Will be populated when we have resource data from API
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -163,9 +122,9 @@ export function DashboardContent() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-foreground/70">
-                Total Containers
+                Total Services
               </p>
-              <p className="text-3xl font-bold mt-2">{containers.length}</p>
+              <p className="text-3xl font-bold mt-2">{services.length}</p>
             </div>
             <div className="bg-primary/10 rounded-lg p-3">
               <Container className="text-primary" size={28} />
@@ -206,23 +165,25 @@ export function DashboardContent() {
         </div>
       </div>
 
-      {/* Container Management Section */}
+      {/* Service Management Section */}
       <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
-          <h2 className="text-xl font-bold">Your Containers</h2>
-          <Button className="gap-2">
+          <h2 className="text-xl font-bold">Services in {currentEnvironment?.name || "Environment"}</h2>
+          <Button className="gap-2" disabled>
             <Plus size={18} />
-            Create Container
+            Deploy Service
           </Button>
         </div>
 
         {/* Table */}
         <div className="overflow-x-auto">
-          {containers.length === 0 ? (
+          {services.length === 0 ? (
             <div className="p-8 text-center">
               <Container size={40} className="mx-auto text-foreground/30 mb-4" />
               <p className="text-foreground/60">
-                No containers yet. Create one to get started!
+                {!currentEnvironment
+                  ? "No environments selected. Select an environment to view services."
+                  : "No services deployed in this environment yet."}
               </p>
             </div>
           ) : (
@@ -230,16 +191,13 @@ export function DashboardContent() {
               <thead>
                 <tr className="border-b border-border bg-secondary/5">
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                    Name
+                    Service Name
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                    Status
+                    Image / Repository
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                    Memory
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
-                    CPU
+                    Deployment Status
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
                     Created
@@ -250,65 +208,80 @@ export function DashboardContent() {
                 </tr>
               </thead>
               <tbody>
-                {containers.map((container) => (
-                  <tr
-                    key={container.id}
-                    className="border-b border-border hover:bg-secondary/5 transition-colors"
-                  >
-                    <td className="px-6 py-4 font-medium">{container.name}</td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${
-                          container.status === "running"
-                            ? "bg-green-500/10 text-green-700 dark:text-green-400"
-                            : "bg-gray-500/10 text-gray-700 dark:text-gray-400"
-                        }`}
-                      >
-                        {container.status === "running"
-                          ? "Running"
-                          : "Stopped"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-sm text-foreground/70">
-                      {container.memory}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-foreground/70">
-                      {container.cpu} vCPU
-                    </td>
-                    <td className="px-6 py-4 text-sm text-foreground/70">
-                      {container.createdAt.toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => toggleContainer(container.id)}
-                          className="p-2 hover:bg-secondary/20 rounded-lg transition-colors"
-                          title={
-                            container.status === "running"
-                              ? "Stop"
-                              : "Start"
-                          }
+                {services.map((service) => {
+                  const deploymentStatus =
+                    service.latestDeployment?.status || "no-deployment";
+
+                  const getStatusStyles = (status: string) => {
+                    switch (status) {
+                      case "SUCCESS":
+                        return "bg-green-500/10 text-green-700 dark:text-green-400";
+                      case "FAILED":
+                        return "bg-red-500/10 text-red-700 dark:text-red-400";
+                      case "IN_PROGRESS":
+                        return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
+                      default:
+                        return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
+                    }
+                  };
+
+                  const createdDate = service.createdAt
+                    ? new Date(service.createdAt).toLocaleDateString()
+                    : "Unknown";
+
+                  const imageOrRepo =
+                    service.source?.image ||
+                    service.source?.repo ||
+                    "N/A";
+
+                  return (
+                    <tr
+                      key={service.id}
+                      className="border-b border-border hover:bg-secondary/5 transition-colors"
+                    >
+                      <td className="px-6 py-4 font-medium">
+                        {service.serviceName}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-foreground/70">
+                        <code className="bg-secondary/20 px-2 py-1 rounded text-xs">
+                          {imageOrRepo}
+                        </code>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusStyles(deploymentStatus)}`}
                         >
-                          <Power
-                            size={18}
-                            className={
-                              container.status === "running"
-                                ? "text-green-500"
-                                : "text-gray-500"
-                            }
-                          />
-                        </button>
-                        <button
-                          onClick={() => deleteContainer(container.id)}
-                          className="p-2 hover:bg-secondary/20 rounded-lg transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 size={18} className="text-red-500" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          {deploymentStatus === "SUCCESS"
+                            ? "Deployed"
+                            : deploymentStatus === "FAILED"
+                              ? "Failed"
+                              : deploymentStatus === "IN_PROGRESS"
+                                ? "Deploying"
+                                : "No Deployment"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-foreground/70">
+                        {createdDate}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <button
+                            className="p-2 hover:bg-secondary/20 rounded-lg transition-colors"
+                            title="Actions"
+                          >
+                            <Power size={18} className="text-foreground/50" />
+                          </button>
+                          <button
+                            className="p-2 hover:bg-secondary/20 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 size={18} className="text-red-500" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

@@ -2,9 +2,27 @@
 
 import { useEffect, useState, useCallback } from "react";
 
+export interface ServiceSource {
+  image?: string;
+  repo?: string;
+}
+
+export interface ServiceDeployment {
+  status?: string;
+}
+
+export interface ServiceInstance {
+  id: string;
+  serviceName: string;
+  source?: ServiceSource;
+  createdAt?: string | Date;
+  latestDeployment?: ServiceDeployment;
+}
+
 export interface Environment {
   id: string;
   name: string;
+  serviceInstances: ServiceInstance[];
 }
 
 export interface Project {
