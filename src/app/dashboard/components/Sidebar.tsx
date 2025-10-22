@@ -8,13 +8,29 @@ import {
   Settings,
   Menu,
   X,
+  ChevronDown,
+  AlertCircle,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useWorkspaces } from "@/hooks/useWorkspaces";
 
 export function Sidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const { workspaces, isLoading, error, refetch } = useWorkspaces();
+  const [selectedWorkspace, setSelectedWorkspace] = useState<string | null>(null);
+
+  // Set initial workspace when data loads
+  const currentWorkspaceName =
+    selectedWorkspace || workspaces[0]?.name || "No workspaces";
 
   const navItems = [
     {
@@ -63,13 +79,67 @@ export function Sidebar() {
         )}
       >
         {/* Logo area */}
-        <div className="px-6 py-8 border-b border-border">
+        <div className="px-6 py-8 border-b border-border space-y-4">
           <Link href="/dashboard" className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
               <span className="text-white font-bold">R</span>
             </div>
             <span className="font-bold text-lg hidden sm:inline">Railway</span>
           </Link>
+
+          {/* Workspace Dropdown */}
+          <div>
+            <p className="text-xs font-semibold text-foreground/60 uppercase tracking-wide mb-2">
+              Workspace
+            </p>
+
+            {error ? (
+              <div className="flex items-center gap-2 px-3 py-2 text-xs text-destructive bg-destructive/10 rounded-lg">
+                <AlertCircle size={14} className="flex-shrink-0" />
+                <span className="truncate">{error}</span>
+              </div>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-between"
+                    disabled={isLoading || workspaces.length === 0}
+                  >
+                    <span className="truncate">
+                      {isLoading ? "Loading..." : currentWorkspaceName}
+                    </span>
+                    <ChevronDown size={16} className="ml-2 flex-shrink-0" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-56">
+                  {workspaces.map((workspace) => (
+                    <DropdownMenuItem
+                      key={workspace.id}
+                      onClick={() => setSelectedWorkspace(workspace.name)}
+                      className="cursor-pointer"
+                    >
+                      {workspace.name}
+                      {currentWorkspaceName === workspace.name && (
+                        <span className="ml-auto text-primary">✓</span>
+                      )}
+                    </DropdownMenuItem>
+                  ))}
+                  {workspaces.length > 0 && (
+                    <>
+                      <div className="my-1 border-t border-border" />
+                      <DropdownMenuItem
+                        onClick={() => refetch()}
+                        className="cursor-pointer text-xs"
+                      >
+                        Refresh workspaces
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
         </div>
 
         {/* Navigation items */}
