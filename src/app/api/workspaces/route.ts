@@ -67,7 +67,6 @@ const WORKSPACES_QUERY = `
   query GetWorkspaces {
     me {
       workspaces {
-        id
         name
         projects {
           edges {
@@ -85,6 +84,10 @@ const WORKSPACES_QUERY = `
                           source {
                             image
                             repo
+                          }
+                          createdAt
+                          latestDeployment {
+                            status
                           }
                         }
                       }
