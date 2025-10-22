@@ -1,5 +1,34 @@
 import { NextResponse } from "next/server";
 
+// Types for Railway API response
+interface RailwayProject {
+  id: string;
+  name: string;
+}
+
+interface RailwayProjectEdge {
+  node: RailwayProject;
+}
+
+interface RailwayWorkspace {
+  id: string;
+  name: string;
+  projects: {
+    edges: RailwayProjectEdge[];
+  };
+}
+
+interface TransformedProject {
+  id: string;
+  name: string;
+}
+
+interface TransformedWorkspace {
+  id: string;
+  name: string;
+  projects: TransformedProject[];
+}
+
 // Railway.com GraphQL API endpoint
 //const RAILWAY_GRAPHQL_URL = "https://api.railway.app/graphql";
 const RAILWAY_GRAPHQL_URL = "https://backboard.railway.app/graphql/v2";
@@ -66,7 +95,16 @@ export async function GET() {
     }
 
     // Transform and return workspace data
-    const workspaces = data.data?.me.workspaces || [];
+    const rawWorkspaces: RailwayWorkspace[] = data.data?.me?.workspaces || [];
+
+    const workspaces: TransformedWorkspace[] = rawWorkspaces.map((ws) => ({
+      id: ws.id,
+      name: ws.name,
+      projects: (ws.projects?.edges || []).map((edge) => ({
+        id: edge.node.id,
+        name: edge.node.name,
+      })),
+    }));
 
     return NextResponse.json({
       success: true,

@@ -2,9 +2,15 @@
 
 import { useEffect, useState, useCallback } from "react";
 
+export interface Project {
+  id: string;
+  name: string;
+}
+
 export interface Workspace {
   id: string;
   name: string;
+  projects: Project[];
 }
 
 interface UseWorkspacesReturn {
@@ -66,7 +72,6 @@ export function useWorkspaces(): UseWorkspacesReturn {
       })();
 
       const data = await fetchPromise;
-      debugger;
       setWorkspaces(data);
       setIsLoading(false);
       setError(null);
