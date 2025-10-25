@@ -172,7 +172,7 @@ export async function GET() {
 
     // Transform and return workspace data
     const rawWorkspaces: RailwayWorkspace[] = data.data?.me?.workspaces || [];
-    debugger;
+    
     const workspaces: TransformedWorkspace[] = rawWorkspaces.map((ws) => ({
       id: ws.id,
       name: ws.name,

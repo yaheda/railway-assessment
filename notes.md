@@ -121,3 +121,12 @@ variables
 
 {"query":"query project($id: String!) {\n  project(id: $id) {\n    ...ProjectFields\n  }\n}\n\nfragment ProjectFields on Project {\n  id\n  name\n  description\n  createdAt\n  updatedAt\n  expiredAt\n  deletedAt\n  prDeploys\n  botPrEnvironments\n  isTempProject\n  isPublic\n  subscriptionType\n  subscriptionPlanLimit\n  workspaceId\n  baseEnvironmentId\n  billingPeriod {\n    start\n    end\n  }\n  projectPermissions {\n    edges {\n      node {\n        ...ProjectPermissionFields\n      }\n    }\n  }\n  environments {\n    edges {\n      node {\n        ...EnvironmentFields\n      }\n    }\n  }\n  services {\n    edges {\n      node {\n        ...ServiceFields\n      }\n    }\n  }\n  volumes {\n    edges {\n      node {\n        ...VolumeFields\n      }\n    }\n  }\n  buckets {\n    edges {\n      node {\n        ...BucketFields\n      }\n    }\n  }\n}\n\nfragment ProjectPermissionFields on ProjectPermission {\n  role\n  userId\n  projectId\n}\n\nfragment EnvironmentFields on Environment {\n  id\n  name\n  projectId\n  createdAt\n  isEphemeral\n  meta {\n    prNumber\n    prTitle\n    prRepo\n    branch\n    baseBranch\n  }\n}\n\nfragment ServiceFields on Service {\n  id\n  name\n  icon\n  templateServiceId\n  createdAt\n  projectId\n  featureFlags\n  templateThreadSlug\n}\n\nfragment VolumeFields on Volume {\n  id\n  createdAt\n  name\n  projectId\n}\n\nfragment BucketFields on Bucket {\n  id\n  createdAt\n  name\n  projectId\n}","variables":{"id":"422f99a8-c499-49b8-bea3-b6d87e76315b"},"operationName":"project"}
 
+
+{
+    "success": true,
+    "workflowId": "deployTemplate/project/422f99a8-c499-49b8-bea3-b6d87e76315b/CIKxg9",
+    "status": "Complete",
+    "error": null,
+    "timestamp": "2025-10-25T18:26:07.537Z"
+}
+

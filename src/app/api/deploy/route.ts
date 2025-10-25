@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    debugger;
+
     // Call Railway.com GraphQL API
     const response = await fetch(RAILWAY_GRAPHQL_URL, {
       method: "POST",
