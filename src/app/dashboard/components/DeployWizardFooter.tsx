@@ -10,6 +10,7 @@ interface DeployWizardFooterProps {
   onNext: () => void
   onBack: () => void
   onCancel: () => void
+  isDeploying?: boolean
 }
 
 export function DeployWizardFooter({
@@ -19,6 +20,7 @@ export function DeployWizardFooter({
   onNext,
   onBack,
   onCancel,
+  isDeploying = false,
 }: DeployWizardFooterProps) {
   const isFirstStep = currentStep === 1
   const isLastStep = currentStep === totalSteps
@@ -46,9 +48,9 @@ export function DeployWizardFooter({
           )}
           <Button
             onClick={onNext}
-            disabled={!canGoNext}
+            disabled={!canGoNext || isDeploying}
           >
-            {isLastStep ? "Deploy" : "Next"}
+            {isDeploying ? "Deploying..." : isLastStep ? "Deploy" : "Next"}
           </Button>
         </div>
       </div>

@@ -7,7 +7,7 @@ export interface Template {
   category: string;
   description: string;
   isVerified: boolean;
-  serializedConfig?: string;
+  serializedConfig?: any;
   isV2Template: boolean;
 }
 

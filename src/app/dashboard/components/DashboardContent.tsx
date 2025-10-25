@@ -11,7 +11,7 @@ import { DeployServiceWizard } from "./DeployServiceWizard";
 
 export function DashboardContent() {
   const searchParams = useSearchParams();
-  const { workspaces, isLoading: workspacesLoading } = useWorkspaces();
+  const { workspaces, isLoading: workspacesLoading, refetch } = useWorkspaces();
   const [deployWizardOpen, setDeployWizardOpen] = useState(false);
 
   // Get current workspace, project and environment from URL params
@@ -89,11 +89,23 @@ export function DashboardContent() {
   const activeCount = services.length; // All services are considered "active" if they're listed
   const totalMemory = 0; // Will be populated when we have resource data from API
 
+  const handleDeploymentSuccess = async () => {
+    // Refetch workspaces to update the services list
+    await refetch();
+  };
+
   return (
     <>
       <DeployServiceWizard
         open={deployWizardOpen}
         onOpenChange={setDeployWizardOpen}
+        workspaceId={currentWorkspace?.id || ""}
+        workspaceName={currentWorkspace?.name || ""}
+        projectId={currentProject?.id || ""}
+        projectName={currentProject?.name || ""}
+        environmentId={currentEnvironment?.id || ""}
+        environmentName={currentEnvironment?.name || ""}
+        onDeploymentSuccess={handleDeploymentSuccess}
       />
       <div className="max-w-7xl mx-auto">
       {/* Header */}
