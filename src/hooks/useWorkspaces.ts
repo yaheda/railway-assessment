@@ -88,7 +88,7 @@ export function useWorkspaces(): UseWorkspacesReturn {
 
         const data = await response.json();
         const fetchedWorkspaces = data.workspaces || [];
-
+        
         // Cache the result for the session
         cachedWorkspaces = fetchedWorkspaces;
 

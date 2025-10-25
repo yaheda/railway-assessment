@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 // Types for Railway API response
 interface RailwayServiceInstance {
+  id: string;
   serviceName: string;
   source?: {
     image?: string;
@@ -19,6 +20,7 @@ interface RailwayServiceEdge {
 
 interface RailwayEnvironment {
   name: string;
+  id: string;
   serviceInstances?: {
     edges: RailwayServiceEdge[];
   };
@@ -89,6 +91,7 @@ const WORKSPACES_QUERY = `
   query GetWorkspaces {
     me {
       workspaces {
+        id
         name
         projects {
           edges {
@@ -98,10 +101,12 @@ const WORKSPACES_QUERY = `
               environments {
                 edges {
                   node {
+                    id
                     name
                     serviceInstances {
                       edges {
                         node {
+                          id
                           serviceName
                           source {
                             image
@@ -167,7 +172,7 @@ export async function GET() {
 
     // Transform and return workspace data
     const rawWorkspaces: RailwayWorkspace[] = data.data?.me?.workspaces || [];
-
+    debugger;
     const workspaces: TransformedWorkspace[] = rawWorkspaces.map((ws) => ({
       id: ws.id,
       name: ws.name,
@@ -175,11 +180,11 @@ export async function GET() {
         id: edge.node.id,
         name: edge.node.name,
         environments: (edge.node.environments?.edges || []).map((envEdge, index) => ({
-          id: `${edge.node.id}-env-${index}-${envEdge.node.name.toLowerCase().replace(/\s+/g, "-")}`,
+          id: `${edge.node.environments?.edges[index].node.id}`,
           name: envEdge.node.name,
           serviceInstances: (envEdge.node.serviceInstances?.edges || []).map(
             (serviceEdge, serviceIndex) => ({
-              id: `${edge.node.id}-service-${serviceIndex}-${serviceEdge.node.serviceName.toLowerCase().replace(/\s+/g, "-")}`,
+              id: `${envEdge.node.serviceInstances?.edges[serviceIndex].node.id}`,
               serviceName: serviceEdge.node.serviceName,
               source: serviceEdge.node.source,
               createdAt: serviceEdge.node.createdAt,

@@ -21,16 +21,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
+import { useWorkspaceContext } from "@/context/WorkspaceContext";
 
 export function Sidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const { workspaces, isLoading, error, refetch } = useWorkspaces();
-  const [selectedWorkspace, setSelectedWorkspace] = useState<string | null>(null);
+  const { selectedWorkspaceName, selectWorkspace } = useWorkspaceContext();
 
-  // Set initial workspace when data loads
-  const currentWorkspaceName =
-    selectedWorkspace || workspaces[0]?.name || "No workspaces";
+  const currentWorkspaceName = selectedWorkspaceName || "Select workspace";
 
   const navItems = [
     {
@@ -116,11 +115,13 @@ export function Sidebar() {
                   {workspaces.map((workspace) => (
                     <DropdownMenuItem
                       key={workspace.id}
-                      onClick={() => setSelectedWorkspace(workspace.name)}
+                      onClick={() => {
+                        selectWorkspace(workspace.id, workspace.name);
+                      }}
                       className="cursor-pointer"
                     >
                       {workspace.name}
-                      {currentWorkspaceName === workspace.name && (
+                      {selectedWorkspaceName === workspace.name && (
                         <span className="ml-auto text-primary">✓</span>
                       )}
                     </DropdownMenuItem>

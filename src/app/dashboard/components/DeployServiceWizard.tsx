@@ -14,30 +14,20 @@ import { DeploymentSuccess } from "./DeployWizardSteps/DeploymentSuccess"
 import { DeployWizardFooter } from "./DeployWizardFooter"
 import { Template } from "@/hooks/useTemplates"
 import { useDeploy, DeploymentInput } from "@/hooks/useDeploy"
+import { useWorkspaceContext } from "@/context/WorkspaceContext"
+import { AlertCircle } from "lucide-react"
 
 export type ServiceType = "github" | "template" | null
 
 interface DeployServiceWizardProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  workspaceId: string
-  workspaceName: string
-  projectId: string
-  projectName: string
-  environmentId: string
-  environmentName: string
   onDeploymentSuccess?: () => void
 }
 
 export function DeployServiceWizard({
   open,
   onOpenChange,
-  workspaceId,
-  workspaceName,
-  projectId,
-  projectName,
-  environmentId,
-  environmentName,
   onDeploymentSuccess,
 }: DeployServiceWizardProps) {
   const [step, setStep] = useState(1)
@@ -46,21 +36,38 @@ export function DeployServiceWizard({
   const [workflowId, setWorkflowId] = useState<string | null>(null)
   const { deploy, isLoading: isDeploying } = useDeploy()
 
+  // Get selections from context
+  const {
+    selectedWorkspaceId,
+    selectedWorkspaceName,
+    selectedProjectId,
+    selectedProjectName,
+    selectedEnvironmentId,
+    selectedEnvironmentName,
+    hasCompleteSelection,
+  } = useWorkspaceContext()
+
+  // Check if we have all required selections
+  const hasAllSelections = hasCompleteSelection()
+
   const handleNext = async () => {
     if (step === 1 && !serviceType) return
     if (step === 2 && serviceType === "template" && !selectedTemplate) return
 
     // Handle deployment on step 3
     if (step === 3 && serviceType === "template" && selectedTemplate) {
+      // Validate we have all selections
+      if (!hasAllSelections) {
+        return
+      }
+
       try {
-        debugger;
-        
         const deploymentInput: DeploymentInput = {
-          workspaceId,
+          workspaceId: selectedWorkspaceId!,
           templateId: selectedTemplate.id,
           serializedConfig: selectedTemplate.serializedConfig,
-          projectId,
-          environmentId,
+          projectId: selectedProjectId!,
+          environmentId: selectedEnvironmentId!,
         }
 
         const result = await deploy(deploymentInput)
@@ -105,6 +112,9 @@ export function DeployServiceWizard({
     }
   }
 
+  // Show error if selections are incomplete when trying to open wizard
+  const shouldShowIncompleteError = open && !hasAllSelections && step === 1
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl">
@@ -113,28 +123,41 @@ export function DeployServiceWizard({
         </DialogHeader>
 
         <div className="min-h-[400px]">
-          {step === 1 && (
+          {shouldShowIncompleteError && (
+            <div className="rounded-lg border border-red-500/20 bg-red-500/10 p-4 flex gap-3">
+              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-red-700 dark:text-red-400">
+                  Incomplete Selection
+                </p>
+                <p className="text-xs text-red-600/70 dark:text-red-300/70 mt-1">
+                  Please select a workspace, project, and environment before opening the deploy wizard.
+                </p>
+              </div>
+            </div>
+          )}
+          {!shouldShowIncompleteError && step === 1 && (
             <ServiceTypeSelector
               selectedType={serviceType}
               onSelect={setServiceType}
             />
           )}
-          {step === 2 && serviceType === "template" && (
+          {!shouldShowIncompleteError && step === 2 && serviceType === "template" && (
             <TemplateSelector
               selectedTemplateId={selectedTemplate?.id || null}
               onSelect={handleTemplateSelect}
             />
           )}
-          {step === 3 && serviceType === "template" && selectedTemplate && (
+          {!shouldShowIncompleteError && step === 3 && serviceType === "template" && selectedTemplate && (
             <ConfirmationStep
               template={selectedTemplate}
-              workspaceName={workspaceName}
-              projectName={projectName}
-              environmentName={environmentName}
+              workspaceName={selectedWorkspaceName || ""}
+              projectName={selectedProjectName || ""}
+              environmentName={selectedEnvironmentName || ""}
               isDeploying={isDeploying}
             />
           )}
-          {step === 4 && workflowId && selectedTemplate && (
+          {!shouldShowIncompleteError && step === 4 && workflowId && selectedTemplate && (
             <DeploymentSuccess
               workflowId={workflowId}
               templateName={selectedTemplate.name}

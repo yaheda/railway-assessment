@@ -1,31 +1,30 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import { Plus, Power, Trash2, Container, Activity, Clock } from "lucide-react";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
+import { useWorkspaceContext } from "@/context/WorkspaceContext";
 import { Button } from "@/components/ui/button";
 import { ProjectSelector } from "./ProjectSelector";
 import { EnvironmentSelector } from "./EnvironmentSelector";
 import { DeployServiceWizard } from "./DeployServiceWizard";
 
 export function DashboardContent() {
-  const searchParams = useSearchParams();
   const { workspaces, isLoading: workspacesLoading, refetch } = useWorkspaces();
   const [deployWizardOpen, setDeployWizardOpen] = useState(false);
+  const {
+    selectedWorkspaceId,
+    selectedProjectId,
+    selectedEnvironmentId,
+  } = useWorkspaceContext();
 
-  // Get current workspace, project and environment from URL params
-  const currentWorkspaceId = searchParams.get("workspace");
-  const selectedProjectId = searchParams.get("project");
-  const selectedEnvironmentId = searchParams.get("environment");
-
-  // Get current workspace (default to first one)
+  // Get current workspace from context
   const currentWorkspace = useMemo(() => {
-    if (currentWorkspaceId) {
-      return workspaces.find((w) => w.id === currentWorkspaceId);
+    if (selectedWorkspaceId) {
+      return workspaces.find((w) => w.id === selectedWorkspaceId);
     }
-    return workspaces[0];
-  }, [workspaces, currentWorkspaceId]);
+    return undefined;
+  }, [workspaces, selectedWorkspaceId]);
 
   // Get projects from current workspace
   const currentProjects = useMemo(() => {
@@ -99,12 +98,6 @@ export function DashboardContent() {
       <DeployServiceWizard
         open={deployWizardOpen}
         onOpenChange={setDeployWizardOpen}
-        workspaceId={currentWorkspace?.id || ""}
-        workspaceName={currentWorkspace?.name || ""}
-        projectId={currentProject?.id || ""}
-        projectName={currentProject?.name || ""}
-        environmentId={currentEnvironment?.id || ""}
-        environmentName={currentEnvironment?.name || ""}
         onDeploymentSuccess={handleDeploymentSuccess}
       />
       <div className="max-w-7xl mx-auto">
@@ -115,14 +108,12 @@ export function DashboardContent() {
           {currentProjects.length > 0 && (
             <ProjectSelector
               projects={currentProjects}
-              selectedProjectId={selectedProjectId}
               isLoading={workspacesLoading}
             />
           )}
           {currentEnvironments.length > 0 && (
             <EnvironmentSelector
               environments={currentEnvironments}
-              selectedEnvironmentId={selectedEnvironmentId}
               isLoading={workspacesLoading}
             />
           )}
@@ -230,7 +221,7 @@ export function DashboardContent() {
                 </tr>
               </thead>
               <tbody>
-                {services.map((service) => {
+                {services.map((service, index) => {
                   const deploymentStatus =
                     service.latestDeployment?.status || "no-deployment";
 
@@ -258,7 +249,7 @@ export function DashboardContent() {
 
                   return (
                     <tr
-                      key={service.id}
+                      key={`${service.id}-${service.serviceName}-${index}`}
                       className="border-b border-border hover:bg-secondary/5 transition-colors"
                     >
                       <td className="px-6 py-4 font-medium">

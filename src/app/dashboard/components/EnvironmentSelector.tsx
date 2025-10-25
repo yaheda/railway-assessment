@@ -1,6 +1,5 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,31 +9,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Environment } from "@/hooks/useWorkspaces";
+import { useWorkspaceContext } from "@/context/WorkspaceContext";
 
 interface EnvironmentSelectorProps {
   environments: Environment[];
-  selectedEnvironmentId: string | null;
   isLoading?: boolean;
   disabled?: boolean;
 }
 
 export function EnvironmentSelector({
   environments,
-  selectedEnvironmentId,
   isLoading = false,
   disabled = false,
 }: EnvironmentSelectorProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const { selectedEnvironmentId, selectedEnvironmentName, selectEnvironment } = useWorkspaceContext();
 
   const selectedEnvironment =
-    environments.find((e) => e.id === selectedEnvironmentId) ||
-    environments[0];
+    environments.find((e) => e.id === selectedEnvironmentId) || null;
 
-  const handleSelectEnvironment = (environmentId: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("environment", environmentId);
-    router.push(`/dashboard?${params.toString()}`);
+  const handleSelectEnvironment = (environmentId: string, environmentName: string) => {
+    selectEnvironment(environmentId, environmentName);
   };
 
   if (environments.length === 0) {
@@ -54,7 +48,7 @@ export function EnvironmentSelector({
           <span className="truncate max-w-xs">
             {isLoading
               ? "Loading..."
-              : selectedEnvironment?.name || "Select environment"}
+              : selectedEnvironmentName || "Select environment"}
           </span>
           <ChevronDown size={16} className="flex-shrink-0" />
         </Button>
@@ -63,11 +57,11 @@ export function EnvironmentSelector({
         {environments.map((environment) => (
           <DropdownMenuItem
             key={environment.id}
-            onClick={() => handleSelectEnvironment(environment.id)}
+            onClick={() => handleSelectEnvironment(environment.id, environment.name)}
             className="cursor-pointer"
           >
             {environment.name}
-            {selectedEnvironment?.id === environment.id && (
+            {selectedEnvironmentName === environment.name && (
               <span className="ml-auto text-primary">✓</span>
             )}
           </DropdownMenuItem>

@@ -1,6 +1,5 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +8,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useWorkspaceContext } from "@/context/WorkspaceContext";
 
 export interface Project {
   id: string;
@@ -17,27 +17,22 @@ export interface Project {
 
 interface ProjectSelectorProps {
   projects: Project[];
-  selectedProjectId: string | null;
   isLoading?: boolean;
   disabled?: boolean;
 }
 
 export function ProjectSelector({
   projects,
-  selectedProjectId,
   isLoading = false,
   disabled = false,
 }: ProjectSelectorProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const { selectedProjectId, selectedProjectName, selectProject } = useWorkspaceContext();
 
   const selectedProject =
-    projects.find((p) => p.id === selectedProjectId) || projects[0];
+    projects.find((p) => p.id === selectedProjectId) || null;
 
-  const handleSelectProject = (projectId: string) => {
-    const params = new URLSearchParams(searchParams);
-    params.set("project", projectId);
-    router.push(`/dashboard?${params.toString()}`);
+  const handleSelectProject = (projectId: string, projectName: string) => {
+    selectProject(projectId, projectName);
   };
 
   if (projects.length === 0) {
@@ -55,7 +50,7 @@ export function ProjectSelector({
           disabled={isLoading || disabled || projects.length === 0}
         >
           <span className="truncate max-w-xs">
-            {isLoading ? "Loading..." : selectedProject?.name || "Select project"}
+            {isLoading ? "Loading..." : selectedProjectName || "Select project"}
           </span>
           <ChevronDown size={16} className="flex-shrink-0" />
         </Button>
@@ -64,11 +59,11 @@ export function ProjectSelector({
         {projects.map((project) => (
           <DropdownMenuItem
             key={project.id}
-            onClick={() => handleSelectProject(project.id)}
+            onClick={() => handleSelectProject(project.id, project.name)}
             className="cursor-pointer"
           >
             {project.name}
-            {selectedProject?.id === project.id && (
+            {selectedProjectName === project.name && (
               <span className="ml-auto text-primary">✓</span>
             )}
           </DropdownMenuItem>
