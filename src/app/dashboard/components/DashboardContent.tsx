@@ -1,16 +1,18 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Plus, Power, Trash2, Container, Activity, Clock } from "lucide-react";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
 import { Button } from "@/components/ui/button";
 import { ProjectSelector } from "./ProjectSelector";
 import { EnvironmentSelector } from "./EnvironmentSelector";
+import { DeployServiceWizard } from "./DeployServiceWizard";
 
 export function DashboardContent() {
   const searchParams = useSearchParams();
   const { workspaces, isLoading: workspacesLoading } = useWorkspaces();
+  const [deployWizardOpen, setDeployWizardOpen] = useState(false);
 
   // Get current workspace, project and environment from URL params
   const currentWorkspaceId = searchParams.get("workspace");
@@ -88,7 +90,12 @@ export function DashboardContent() {
   const totalMemory = 0; // Will be populated when we have resource data from API
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <>
+      <DeployServiceWizard
+        open={deployWizardOpen}
+        onOpenChange={setDeployWizardOpen}
+      />
+      <div className="max-w-7xl mx-auto">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-2 flex-wrap">
@@ -169,7 +176,10 @@ export function DashboardContent() {
       <div className="bg-card border border-border rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <h2 className="text-xl font-bold">Services in {currentEnvironment?.name || "Environment"}</h2>
-          <Button className="gap-2" disabled>
+          <Button
+            className="gap-2"
+            onClick={() => setDeployWizardOpen(true)}
+          >
             <Plus size={18} />
             Deploy Service
           </Button>
@@ -287,6 +297,7 @@ export function DashboardContent() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
