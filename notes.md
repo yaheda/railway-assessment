@@ -130,3 +130,18 @@ variables
     "timestamp": "2025-10-25T18:26:07.537Z"
 }
 
+
+
+{"query":"mutation stageEnvironmentChanges($environmentId: String!, $payload: EnvironmentConfig!) {\n  environmentStageChanges(environmentId: $environmentId, input: $payload) {\n    id\n  }\n}","variables":{"environmentId":"f3435432-dc8c-4e6f-9dc8-1e26695bf735","payload":{"services":{"a942dee6-cb2a-4a7c-aab6-5ae3ea26e4f3":{"isCreated":true,"source":{"branch":"main","repo":"yaheda/ioa"}}}}},"operationName":"stageEnvironmentChanges"}
+
+
+{"query":"query environmentConfig($environmentId: String!, $decryptVariables: Boolean, $decryptPatchVariables: Boolean) {\n  environment(id: $environmentId) {\n    id\n    config(decryptVariables: $decryptVariables)\n    serviceInstances {\n      edges {\n        node {\n          ...ServiceInstanceFields\n        }\n      }\n    }\n    volumeInstances {\n      edges {\n        node {\n          ...VolumeInstanceFields\n        }\n      }\n    }\n    bucketInstances {\n      edges {\n        node {\n          ...BucketInstanceFields\n        }\n      }\n    }\n  }\n  environmentStagedChanges(environmentId: $environmentId) {\n    id\n    createdAt\n    updatedAt\n    status\n    lastAppliedError\n    patch(decryptVariables: $decryptPatchVariables)\n  }\n}\n\nfragment ServiceInstanceFields on ServiceInstance {\n  id\n  isUpdatable\n  serviceId\n  environmentId\n  railpackInfo\n  latestDeployment {\n    ...LatestDeploymentFields\n  }\n}\n\nfragment LatestDeploymentFields on Deployment {\n  id\n  serviceId\n  projectId\n  environmentId\n  createdAt\n  updatedAt\n  statusUpdatedAt\n  status\n  staticUrl\n  suggestAddServiceDomain\n  meta\n}\n\nfragment VolumeInstanceFields on VolumeInstance {\n  id\n  volumeId\n  environmentId\n  serviceId\n  externalId\n  isPendingDeletion\n  deletedAt\n  state\n}\n\nfragment BucketInstanceFields on BucketInstance {\n  id\n  bucketId\n  environmentId\n  region\n}","variables":{"environmentId":"f3435432-dc8c-4e6f-9dc8-1e26695bf735","decryptVariables":true,"decryptPatchVariables":true},"operationName":"environmentConfig"}
+
+
+
+
+
+{"query":"mutation serviceCreate($input: ServiceCreateInput!) {\n  serviceCreate(input: $input) {\n    ...ServiceFields\n  }\n}\n\nfragment ServiceFields on Service {\n  id\n  name\n  icon\n  templateServiceId\n  createdAt\n  projectId\n  featureFlags\n  templateThreadSlug\n}","variables":{"input":{"projectId":"422f99a8-c499-49b8-bea3-b6d87e76315b","source":{"repo":"yaheda/ioa"},"branch":"main","environmentId":null}},"operationName":"serviceCreate"}
+
+{"query":"mutation environmentPatchCommitStaged($environmentId: String!, $message: String, $skipDeploys: Boolean) {\n  environmentPatchCommitStaged(\n    environmentId: $environmentId\n    commitMessage: $message\n    skipDeploys: $skipDeploys\n  )\n}","variables":{"environmentId":"f3435432-dc8c-4e6f-9dc8-1e26695bf735","skipDeploys":false},"operationName":"environmentPatchCommitStaged"}
+

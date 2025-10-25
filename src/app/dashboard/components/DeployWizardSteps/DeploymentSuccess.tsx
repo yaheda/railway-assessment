@@ -4,10 +4,11 @@ import { useEffect } from "react"
 import { CheckCircle } from "lucide-react"
 
 interface DeploymentSuccessProps {
-  workflowId: string
+  workflowId: string | null
   templateName: string
   onSuccess?: () => void
   autoCloseDelay?: number
+  isGithubDeploy?: boolean
 }
 
 export function DeploymentSuccess({
@@ -15,6 +16,7 @@ export function DeploymentSuccess({
   templateName,
   onSuccess,
   autoCloseDelay = 2500,
+  isGithubDeploy = false,
 }: DeploymentSuccessProps) {
   // Auto-close after delay
   useEffect(() => {
@@ -52,12 +54,14 @@ export function DeploymentSuccess({
       </div>
 
       {/* Workflow ID Card */}
-      <div className="border border-border rounded-lg p-4 bg-card">
-        <p className="text-sm text-muted-foreground mb-2">Workflow ID</p>
-        <p className="font-mono text-sm bg-secondary/20 px-3 py-2 rounded break-all">
-          {workflowId}
-        </p>
-      </div>
+      {workflowId && !isGithubDeploy && (
+        <div className="border border-border rounded-lg p-4 bg-card">
+          <p className="text-sm text-muted-foreground mb-2">Workflow ID</p>
+          <p className="font-mono text-sm bg-secondary/20 px-3 py-2 rounded break-all">
+            {workflowId}
+          </p>
+        </div>
+      )}
 
       {/* Info Message */}
       <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-4">

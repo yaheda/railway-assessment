@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { Template } from "./useTemplates";
 
 export interface DeploymentInput {
   workspaceId: string;

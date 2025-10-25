@@ -1,10 +1,12 @@
 "use client"
 
-import { AlertCircle, Check } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 import { Template } from "@/hooks/useTemplates"
+import { GithubRepo } from "@/hooks/useGithubRepos"
 
 interface ConfirmationStepProps {
-  template: Template
+  template?: Template
+  githubRepo?: GithubRepo
   workspaceName: string
   projectName: string
   environmentName: string
@@ -13,6 +15,7 @@ interface ConfirmationStepProps {
 
 export function ConfirmationStep({
   template,
+  githubRepo,
   workspaceName,
   projectName,
   environmentName,
@@ -28,46 +31,81 @@ export function ConfirmationStep({
       </div>
 
       {/* Template Summary Card */}
-      <div className="border border-border rounded-lg p-4 bg-card">
-        <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-primary" />
-          Template Details
-        </h3>
+      {template && (
+        <div className="border border-border rounded-lg p-4 bg-card">
+          <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-primary" />
+            Template Details
+          </h3>
 
-        <div className="space-y-3">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Template Name</p>
-              <p className="text-base font-medium mt-1">{template.name}</p>
+          <div className="space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">Template Name</p>
+                <p className="text-base font-medium mt-1">{template.name}</p>
+              </div>
+              {template.isVerified && (
+                <span className="px-2 py-1 bg-green-500/20 text-green-700 dark:text-green-400 text-xs rounded font-medium">
+                  Verified
+                </span>
+              )}
             </div>
-            {template.isVerified && (
-              <span className="px-2 py-1 bg-green-500/20 text-green-700 dark:text-green-400 text-xs rounded font-medium">
-                Verified
-              </span>
-            )}
-          </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border/50">
-            <div>
-              <p className="text-sm text-muted-foreground">Category</p>
-              <p className="text-sm font-medium mt-1">{template.category}</p>
+            <div className="grid grid-cols-2 gap-4 pt-2 border-t border-border/50">
+              <div>
+                <p className="text-sm text-muted-foreground">Category</p>
+                <p className="text-sm font-medium mt-1">{template.category}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Code</p>
+                <p className="text-xs font-mono bg-secondary/20 px-2 py-1 rounded mt-1 w-fit">
+                  {template.code}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Code</p>
-              <p className="text-xs font-mono bg-secondary/20 px-2 py-1 rounded mt-1 w-fit">
-                {template.code}
+
+            <div className="pt-2 border-t border-border/50">
+              <p className="text-sm text-muted-foreground">Description</p>
+              <p className="text-sm mt-1 text-foreground">
+                {template.description || "No description available"}
               </p>
             </div>
           </div>
+        </div>
+      )}
 
-          <div className="pt-2 border-t border-border/50">
-            <p className="text-sm text-muted-foreground">Description</p>
-            <p className="text-sm mt-1 text-foreground">
-              {template.description || "No description available"}
-            </p>
+      {/* GitHub Repository Summary Card */}
+      {githubRepo && (
+        <div className="border border-border rounded-lg p-4 bg-card">
+          <h3 className="font-semibold text-base mb-3 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-primary" />
+            Repository Details
+          </h3>
+
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm text-muted-foreground">Repository Name</p>
+              <p className="text-base font-medium mt-1">{githubRepo.name}</p>
+            </div>
+
+            <div className="pt-2 border-t border-border/50">
+              <p className="text-sm text-muted-foreground">Full Name</p>
+              <p className="text-xs font-mono bg-secondary/20 px-2 py-1 rounded mt-1 w-fit">
+                {githubRepo.fullName}
+              </p>
+            </div>
+
+            {githubRepo.description && (
+              <div className="pt-2 border-t border-border/50">
+                <p className="text-sm text-muted-foreground">Description</p>
+                <p className="text-sm mt-1 text-foreground">
+                  {githubRepo.description}
+                </p>
+              </div>
+            )}
           </div>
         </div>
-      </div>
+      )}
 
       {/* Deployment Target Card */}
       <div className="border border-border rounded-lg p-4 bg-card">
@@ -102,7 +140,7 @@ export function ConfirmationStep({
             Deployment in progress
           </p>
           <p className="text-xs text-blue-600/70 dark:text-blue-300/70 mt-1">
-            Click the Deploy button to begin the deployment. You'll see the
+            Click the Deploy button to begin the deployment. You&apos;ll see the
             status in the next step.
           </p>
         </div>

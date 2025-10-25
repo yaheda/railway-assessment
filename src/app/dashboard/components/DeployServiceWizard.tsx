@@ -9,10 +9,12 @@ import {
 } from "@/components/ui/dialog"
 import { ServiceTypeSelector } from "./DeployWizardSteps/ServiceTypeSelector"
 import { TemplateSelector } from "./DeployWizardSteps/TemplateSelector"
+import { GitHubRepoSelector } from "./DeployWizardSteps/GitHubRepoSelector"
 import { ConfirmationStep } from "./DeployWizardSteps/ConfirmationStep"
 import { DeploymentSuccess } from "./DeployWizardSteps/DeploymentSuccess"
 import { DeployWizardFooter } from "./DeployWizardFooter"
 import { Template } from "@/hooks/useTemplates"
+import { GithubRepo } from "@/hooks/useGithubRepos"
 import { useDeploy, DeploymentInput } from "@/hooks/useDeploy"
 import { useWorkspaceContext } from "@/context/WorkspaceContext"
 import { AlertCircle } from "lucide-react"
@@ -33,6 +35,7 @@ export function DeployServiceWizard({
   const [step, setStep] = useState(1)
   const [serviceType, setServiceType] = useState<ServiceType>(null)
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
+  const [selectedGithubRepo, setSelectedGithubRepo] = useState<GithubRepo | null>(null)
   const [workflowId, setWorkflowId] = useState<string | null>(null)
   const { deploy, isLoading: isDeploying } = useDeploy()
 
@@ -53,6 +56,7 @@ export function DeployServiceWizard({
   const handleNext = async () => {
     if (step === 1 && !serviceType) return
     if (step === 2 && serviceType === "template" && !selectedTemplate) return
+    if (step === 2 && serviceType === "github" && !selectedGithubRepo) return
 
     // Handle deployment on step 3
     if (step === 3 && serviceType === "template" && selectedTemplate) {
@@ -65,7 +69,7 @@ export function DeployServiceWizard({
         const deploymentInput: DeploymentInput = {
           workspaceId: selectedWorkspaceId!,
           templateId: selectedTemplate.id,
-          serializedConfig: selectedTemplate.serializedConfig,
+          serializedConfig: selectedTemplate.serializedConfig || {},
           projectId: selectedProjectId!,
           environmentId: selectedEnvironmentId!,
         }
@@ -77,6 +81,13 @@ export function DeployServiceWizard({
         // Error is handled in the confirmation step
         console.error("Deployment failed:", error)
       }
+      return
+    }
+
+    // Handle deployment on step 3 for GitHub repos (skip deployment for now)
+    if (step === 3 && serviceType === "github" && selectedGithubRepo) {
+      // Skip deployment logic for now as requested
+      setStep(4)
       return
     }
 
@@ -93,6 +104,7 @@ export function DeployServiceWizard({
     setStep(1)
     setServiceType(null)
     setSelectedTemplate(null)
+    setSelectedGithubRepo(null)
     setWorkflowId(null)
     onOpenChange(false)
   }
@@ -103,6 +115,10 @@ export function DeployServiceWizard({
 
   const handleTemplateSelect = (template: Template) => {
     setSelectedTemplate(template)
+  }
+
+  const handleGithubRepoSelect = (repo: GithubRepo) => {
+    setSelectedGithubRepo(repo)
   }
 
   const handleDeploymentSuccess = () => {
@@ -148,6 +164,12 @@ export function DeployServiceWizard({
               onSelect={handleTemplateSelect}
             />
           )}
+          {!shouldShowIncompleteError && step === 2 && serviceType === "github" && (
+            <GitHubRepoSelector
+              selectedRepoFullName={selectedGithubRepo?.fullName || null}
+              onSelect={handleGithubRepoSelect}
+            />
+          )}
           {!shouldShowIncompleteError && step === 3 && serviceType === "template" && selectedTemplate && (
             <ConfirmationStep
               template={selectedTemplate}
@@ -157,11 +179,28 @@ export function DeployServiceWizard({
               isDeploying={isDeploying}
             />
           )}
-          {!shouldShowIncompleteError && step === 4 && workflowId && selectedTemplate && (
+          {!shouldShowIncompleteError && step === 3 && serviceType === "github" && selectedGithubRepo && (
+            <ConfirmationStep
+              githubRepo={selectedGithubRepo}
+              workspaceName={selectedWorkspaceName || ""}
+              projectName={selectedProjectName || ""}
+              environmentName={selectedEnvironmentName || ""}
+              isDeploying={isDeploying}
+            />
+          )}
+          {!shouldShowIncompleteError && step === 4 && selectedTemplate && (
             <DeploymentSuccess
               workflowId={workflowId}
               templateName={selectedTemplate.name}
               onSuccess={handleDeploymentSuccess}
+            />
+          )}
+          {!shouldShowIncompleteError && step === 4 && selectedGithubRepo && !selectedTemplate && (
+            <DeploymentSuccess
+              workflowId={null}
+              templateName={selectedGithubRepo.name}
+              onSuccess={handleDeploymentSuccess}
+              isGithubDeploy={true}
             />
           )}
         </div>
@@ -175,9 +214,11 @@ export function DeployServiceWizard({
                 ? serviceType !== null
                 : step === 2 && serviceType === "template"
                   ? selectedTemplate !== null
-                  : step === 3
-                    ? !isDeploying
-                    : true
+                  : step === 2 && serviceType === "github"
+                    ? selectedGithubRepo !== null
+                    : step === 3
+                      ? !isDeploying
+                      : true
             }
             onNext={handleNext}
             onBack={handleBack}
