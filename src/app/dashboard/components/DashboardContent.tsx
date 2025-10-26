@@ -131,7 +131,7 @@ export function DashboardContent() {
   const services = useMemo(() => {
     const environment = currentEnvironment;
     if (!environment) return [];
-
+    debugger;
     // Extract service instances from environment
     if (
       environment.serviceInstances &&
@@ -353,7 +353,7 @@ export function DashboardContent() {
                 </tr>
               </thead>
               <tbody>
-                {services.map((service, index) => {
+                {services.map((service: any, index: number) => {
                   const deploymentStatus =
                     service.latestDeployment?.status || "no-deployment";
 
@@ -410,12 +410,12 @@ export function DashboardContent() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
-                          <button
+                          {/* <button
                             className="p-2 hover:bg-secondary/20 rounded-lg transition-colors"
                             title="Actions"
                           >
                             <Power size={18} className="text-foreground/50" />
-                          </button>
+                          </button> */}
                           <button
                             className="p-2 hover:bg-secondary/20 rounded-lg transition-colors"
                             title="Delete"

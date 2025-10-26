@@ -10,6 +10,7 @@ interface RailwayService {
 interface RailwayServiceInstance {
   id: string;
   serviceName: string;
+  serviceId: string;
   source?: {
     image?: string;
     repo?: string;
@@ -87,7 +88,7 @@ interface TransformedProject {
   id: string;
   name: string;
   environments: TransformedEnvironment[];
-  services: TransformedService[];
+  // services: TransformedService[];
 }
 
 interface TransformedService {
@@ -118,14 +119,6 @@ const WORKSPACES_QUERY = `
             node {
               name
               id
-              services {
-                edges {
-                  node {
-                    id
-                    name
-                  }
-                }
-              }
               environments {
                 edges {
                   node {
@@ -136,6 +129,7 @@ const WORKSPACES_QUERY = `
                         node {
                           id
                           serviceName
+                          serviceId
                           source {
                             image
                             repo
@@ -207,10 +201,10 @@ export async function GET() {
       projects: (ws.projects?.edges || []).map((edge) => ({
         id: edge.node.id,
         name: edge.node.name,
-        services: (edge.node.services?.edges || []).map((serviceEdge) => ({
-          id: serviceEdge.node.id,
-          name: serviceEdge.node.name,
-        })),
+        // services: (edge.node.services?.edges || []).map((serviceEdge) => ({
+        //   id: serviceEdge.node.id,
+        //   name: serviceEdge.node.name,
+        // })),
         environments: (edge.node.environments?.edges || []).map((envEdge, index) => ({
           id: `${edge.node.environments?.edges[index].node.id}`,
           name: envEdge.node.name,
@@ -218,7 +212,7 @@ export async function GET() {
             (serviceInstanceEdge, serviceIndex) => ({
               id: `${envEdge.node.serviceInstances?.edges[serviceIndex].node.id}`,
               serviceName: serviceInstanceEdge.node.serviceName,
-              serviceId: edge.node.services?.edges[serviceIndex].node.id,
+              serviceId: serviceInstanceEdge.node.serviceId,
               source: serviceInstanceEdge.node.source,
               createdAt: serviceInstanceEdge.node.createdAt,
               latestDeployment: serviceInstanceEdge.node.latestDeployment,
