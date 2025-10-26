@@ -2,6 +2,8 @@
 
 A modern full-stack web application that provides an intuitive interface for managing containers through Railway.com. Users can spin up and spin down containers, manage multiple environments and projects, and deploy services with a guided wizard interface.
 
+![Dashboard](./screenshots/dashboard.png)
+
 ## Project Overview
 
 Railway Assessment is a Next.js 15 application built as a container management service for Railway.com. It enables users to:
