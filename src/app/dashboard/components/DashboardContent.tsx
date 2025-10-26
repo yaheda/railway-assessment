@@ -1,13 +1,15 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Plus, Power, Trash2, Container, Activity, Clock } from "lucide-react";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
 import { useWorkspaceContext } from "@/context/WorkspaceContext";
+import { useEnvironmentStagedChanges } from "@/hooks/useEnvironmentStagedChanges";
 import { Button } from "@/components/ui/button";
 import { ProjectSelector } from "./ProjectSelector";
 import { EnvironmentSelector } from "./EnvironmentSelector";
 import { DeployServiceWizard } from "./DeployServiceWizard";
+import { StagedChangesAlert } from "./StagedChangesAlert";
 
 export function DashboardContent() {
   const { workspaces, isLoading: workspacesLoading, refetch } = useWorkspaces();
@@ -17,6 +19,17 @@ export function DashboardContent() {
     selectedProjectId,
     selectedEnvironmentId,
   } = useWorkspaceContext();
+
+  // Track staged changes for current environment
+  const { stagedChanges, refetch: refetchStagedChanges } =
+    useEnvironmentStagedChanges(selectedEnvironmentId || null);
+
+  // Load staged changes when environment changes
+  useEffect(() => {
+    if (selectedEnvironmentId) {
+      refetchStagedChanges();
+    }
+  }, [selectedEnvironmentId, refetchStagedChanges]);
 
   // Get current workspace from context
   const currentWorkspace = useMemo(() => {
@@ -91,6 +104,10 @@ export function DashboardContent() {
   const handleDeploymentSuccess = async () => {
     // Refetch workspaces to update the services list
     await refetch();
+    // Also check for staged changes
+    if (selectedEnvironmentId) {
+      await refetchStagedChanges();
+    }
   };
 
   return (
@@ -101,6 +118,19 @@ export function DashboardContent() {
         onDeploymentSuccess={handleDeploymentSuccess}
       />
       <div className="max-w-7xl mx-auto">
+      {/* Staged Changes Alert */}
+      {stagedChanges && (
+        <div className="mb-8">
+          <StagedChangesAlert
+            stagedChanges={stagedChanges}
+            onDeploy={() => {
+              // Future: trigger deployment of staged changes
+              console.log("Deploy staged changes");
+            }}
+          />
+        </div>
+      )}
+
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-4 mb-2 flex-wrap">

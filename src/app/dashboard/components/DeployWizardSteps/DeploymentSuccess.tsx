@@ -1,14 +1,20 @@
 "use client"
 
 import { useEffect } from "react"
-import { CheckCircle } from "lucide-react"
+import { CheckCircle, AlertCircle } from "lucide-react"
+import {
+  useEnvironmentStagedChanges,
+  EnvironmentStagedChange,
+} from "@/hooks/useEnvironmentStagedChanges"
 
 interface DeploymentSuccessProps {
   workflowId?: string | null
   templateName?: string
   serviceId?: string
   serviceName?: string
+  environmentId?: string
   onSuccess?: () => void
+  onStagedChangesDetected?: (changes: EnvironmentStagedChange) => void
   autoCloseDelay?: number
   isGithubDeploy?: boolean
 }
@@ -18,13 +24,40 @@ export function DeploymentSuccess({
   templateName,
   serviceId,
   serviceName,
+  environmentId,
   onSuccess,
+  onStagedChangesDetected,
   autoCloseDelay = 2500,
   isGithubDeploy = false,
 }: DeploymentSuccessProps) {
   const displayName = isGithubDeploy ? serviceName : templateName
-  // Auto-close after delay
+  const { stagedChanges, refetch: refetchStagedChanges } =
+    useEnvironmentStagedChanges(environmentId || null)
+
+  // Check for staged changes after deployment
   useEffect(() => {
+    if (environmentId) {
+      const checkStagedChanges = async () => {
+        await refetchStagedChanges()
+      }
+      checkStagedChanges()
+    }
+  }, [environmentId, refetchStagedChanges])
+
+  // Notify parent when staged changes are detected
+  useEffect(() => {
+    if (stagedChanges && onStagedChangesDetected) {
+      onStagedChangesDetected(stagedChanges)
+    }
+  }, [stagedChanges, onStagedChangesDetected])
+
+  // Auto-close after delay (unless there are staged changes)
+  useEffect(() => {
+    // Don't auto-close if there are staged changes pending
+    if (stagedChanges) {
+      return
+    }
+
     const timer = setTimeout(() => {
       if (onSuccess) {
         onSuccess()
@@ -32,7 +65,7 @@ export function DeploymentSuccess({
     }, autoCloseDelay)
 
     return () => clearTimeout(timer)
-  }, [onSuccess, autoCloseDelay])
+  }, [onSuccess, autoCloseDelay, stagedChanges])
 
   return (
     <div className="space-y-6">
@@ -80,13 +113,37 @@ export function DeploymentSuccess({
         </div>
       )}
 
+      {/* Staged Changes Alert */}
+      {stagedChanges && (
+        <div className="rounded-lg border border-orange-500/20 bg-orange-500/10 p-4 flex gap-3">
+          <AlertCircle className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-medium text-orange-700 dark:text-orange-400">
+              Staged Changes Pending
+            </p>
+            <p className="text-xs text-orange-600/70 dark:text-orange-300/70 mt-1">
+              {stagedChanges.status === "PENDING"
+                ? "Your environment has pending changes that need to be deployed."
+                : `Status: ${stagedChanges.status}`}
+            </p>
+            {stagedChanges.lastAppliedError && (
+              <p className="text-xs text-orange-600/70 dark:text-orange-300/70 mt-1">
+                Last error: {stagedChanges.lastAppliedError}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Info Message */}
       <div className="rounded-lg border border-blue-500/20 bg-blue-500/10 p-4">
         <p className="text-sm font-medium text-blue-700 dark:text-blue-400">
-          Closing in a moment...
+          {stagedChanges ? "Pending Changes" : "Closing in a moment..."}
         </p>
         <p className="text-xs text-blue-600/70 dark:text-blue-300/70 mt-1">
-          The wizard will close and your services list will update automatically.
+          {stagedChanges
+            ? "Visit the dashboard to deploy these changes."
+            : "The wizard will close and your services list will update automatically."}
         </p>
       </div>
     </div>
