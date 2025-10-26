@@ -5,7 +5,7 @@ A modern full-stack web application that provides an intuitive interface for man
 https://railway-assessment-production.up.railway.app/
 
 
-![Dashboard](./screenshots/dashboard.png)(https://railway-assessment-production.up.railway.app/)
+![Dashboard](./screenshots/dashboard.png)
 
 ## Project Overview
 
