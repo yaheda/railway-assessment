@@ -275,7 +275,7 @@ export function DashboardContent() {
         </div>
 
         {/* Active Containers */}
-        <div className="bg-card border border-border rounded-lg p-6">
+        {/* <div className="bg-card border border-border rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-foreground/70">
@@ -287,10 +287,10 @@ export function DashboardContent() {
               <Activity className="text-green-500" size={28} />
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Memory Usage */}
-        <div className="bg-card border border-border rounded-lg p-6">
+        {/* <div className="bg-card border border-border rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-foreground/70">
@@ -304,7 +304,7 @@ export function DashboardContent() {
               <Clock className="text-blue-500" size={28} />
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
 
       {/* Service Management Section */}

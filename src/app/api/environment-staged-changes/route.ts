@@ -56,6 +56,7 @@ export async function POST(request: NextRequest) {
         query: STAGED_CHANGES_QUERY,
         variables: {
           id: body.environmentId,
+          decryptPatchVariables: true,
         },
       }),
     });
