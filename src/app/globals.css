@@ -172,3 +172,121 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Orbital animations */
+@keyframes orbit-1 {
+  0% {
+    transform: rotate(0deg) translateX(200px) rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg) translateX(200px) rotate(-360deg);
+  }
+}
+
+@keyframes orbit-2 {
+  0% {
+    transform: rotate(45deg) translateX(320px) rotate(-45deg);
+  }
+  100% {
+    transform: rotate(405deg) translateX(320px) rotate(-405deg);
+  }
+}
+
+@keyframes orbit-3 {
+  0% {
+    transform: rotate(-30deg) translateX(140px) rotate(30deg);
+  }
+  100% {
+    transform: rotate(330deg) translateX(140px) rotate(30deg);
+  }
+}
+
+@keyframes float-slow {
+  0% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-30px) translateX(20px);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.3;
+  }
+}
+
+@keyframes float-slower {
+  0% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.25;
+  }
+  33% {
+    transform: translateY(-50px) translateX(-30px);
+    opacity: 0.4;
+  }
+  66% {
+    transform: translateY(20px) translateX(40px);
+    opacity: 0.35;
+  }
+  100% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.25;
+  }
+}
+
+/* Apply animations to orbitals */
+.orbital-body {
+  transform-origin: -200px 0;
+}
+
+.orbital-1 {
+  animation: orbit-1 20s linear infinite;
+}
+
+.orbital-2 {
+  animation: orbit-2 35s linear infinite;
+  transform-origin: -320px 0;
+}
+
+.orbital-3 {
+  animation: orbit-3 15s linear infinite;
+  transform-origin: -140px 0;
+}
+
+.orbital-4 {
+  animation: orbit-2 40s linear infinite reverse;
+  transform-origin: -280px 0;
+}
+
+.orbital-5 {
+  animation: orbit-1 12s linear infinite reverse;
+  transform-origin: -100px 0;
+}
+
+.float-slow {
+  animation: float-slow 8s ease-in-out infinite;
+}
+
+.float-medium {
+  animation: float-medium 10s ease-in-out infinite;
+}
+
+.float-slower {
+  animation: float-slower 12s ease-in-out infinite;
+}
+
+@keyframes float-medium {
+  0% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateY(-40px) translateX(-25px);
+    opacity: 0.45;
+  }
+  100% {
+    transform: translateY(0px) translateX(0px);
+    opacity: 0.35;
+  }
+}

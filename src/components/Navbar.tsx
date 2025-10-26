@@ -17,7 +17,7 @@ export function Navbar() {
           </div>
 
           {/* Primary Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          {/* <div className="hidden md:flex items-center space-x-8">
             <a
               href="#features"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -36,7 +36,7 @@ export function Navbar() {
             >
               Documentation
             </a>
-          </div>
+          </div> */}
 
           {/* CTA Buttons */}
           <div className="flex items-center space-x-4">

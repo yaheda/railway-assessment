@@ -1,15 +1,19 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
+import { FloatingOrbitals } from "@/components/FloatingOrbitals"
 
 export function Hero() {
   return (
     <div className="relative w-full h-screen overflow-hidden">
-      {/* Interactive background element - placeholder for future background animations */}
+      {/* Base gradient background */}
       <div
         className="absolute inset-0 z-0 bg-gradient-to-br from-background via-background to-secondary/10"
-        aria-label="Interactive background element"
+        aria-label="Gradient background"
       />
+
+      {/* Animated orbital background */}
+      <FloatingOrbitals />
 
       {/* Hero content */}
       <div className="relative z-10 h-full w-full flex flex-col items-center justify-start pt-32 px-4 sm:px-6 lg:px-8">
