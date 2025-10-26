@@ -78,8 +78,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Extract staged changes response (can be null if no pending changes)
-    const stagedChanges: EnvironmentStagedChange | null =
+    let stagedChanges: EnvironmentStagedChange | null =
       data.data?.environmentStagedChanges || null;
+
+    // Filter out stages with id "<empty>"
+    if (stagedChanges !== null) {
+      if (stagedChanges.id === "<empty>") {
+        stagedChanges = null;
+      }
+    }
 
     return NextResponse.json({
       success: true,
