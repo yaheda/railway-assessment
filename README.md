@@ -2,7 +2,10 @@
 
 A modern full-stack web application that provides an intuitive interface for managing containers through Railway.com. Users can spin up and spin down containers, manage multiple environments and projects, and deploy services with a guided wizard interface.
 
-![Dashboard](./screenshots/dashboard.png)
+https://railway-assessment-production.up.railway.app/
+
+
+![Dashboard](./screenshots/dashboard.png)(https://railway-assessment-production.up.railway.app/)
 
 ## Project Overview
 
