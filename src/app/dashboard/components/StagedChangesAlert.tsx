@@ -1,19 +1,34 @@
 "use client"
 
-import { AlertCircle, Zap } from "lucide-react"
+import { useState } from "react"
+import { AlertCircle, Zap, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { EnvironmentStagedChange } from "@/hooks/useEnvironmentStagedChanges"
 
 interface StagedChangesAlertProps {
   stagedChanges: EnvironmentStagedChange
-  onDeploy: () => void
+  onDeploy: () => Promise<void>
+  isDeploying?: boolean
 }
 
 export function StagedChangesAlert({
   stagedChanges,
   onDeploy,
+  isDeploying = false,
 }: StagedChangesAlertProps) {
+  const [localError, setLocalError] = useState<string | null>(null)
   const isPending = stagedChanges.status === "PENDING"
+
+  const handleDeploy = async () => {
+    try {
+      setLocalError(null)
+      await onDeploy()
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to deploy changes"
+      setLocalError(errorMessage)
+    }
+  }
 
   return (
     <div
@@ -64,15 +79,31 @@ export function StagedChangesAlert({
           </p>
         )}
 
+        {localError && (
+          <p className="text-xs mt-2 text-red-600/70 dark:text-red-300/70">
+            <span className="font-medium">Deployment error:</span> {localError}
+          </p>
+        )}
+
         <div className="flex items-center gap-2 mt-3">
           <Button
             size="sm"
             variant="outline"
-            onClick={onDeploy}
+            onClick={handleDeploy}
+            disabled={isDeploying}
             className="gap-1.5"
           >
-            <Zap size={14} />
-            Deploy Changes
+            {isDeploying ? (
+              <>
+                <Loader2 size={14} className="animate-spin" />
+                Deploying...
+              </>
+            ) : (
+              <>
+                <Zap size={14} />
+                Deploy Changes
+              </>
+            )}
           </Button>
           <p className="text-xs text-muted-foreground">
             Change ID: <code className="text-xs">{stagedChanges.id}</code>

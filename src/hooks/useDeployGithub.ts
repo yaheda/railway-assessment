@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { useCreateService, ServiceCreateInput } from "./useCreateService";
+import { useServiceInstanceDeploy } from "./useServiceInstanceDeploy";
 
 export interface GithubDeployInput {
   projectId: string;
@@ -21,11 +22,17 @@ interface UseDeployGithubReturn {
 /**
  * Hook to orchestrate GitHub repository deployment
  * Step 1: Creates a new service
- * Step 2: (Future) Connects GitHub repository to the service
+ * Step 2: Deploys the service instance immediately
+ * Step 3: (Future) Deploy staged changes if any
  */
 export function useDeployGithub(): UseDeployGithubReturn {
   const { createService, isLoading: isCreatingService, error: createError } =
     useCreateService();
+  const {
+    deploy: deployServiceInstance,
+    isLoading: isDeployingService,
+    error: deployError,
+  } = useServiceInstanceDeploy();
   const [error, setError] = useState<string | null>(null);
 
   const deployGithub = useCallback(
@@ -43,11 +50,16 @@ export function useDeployGithub(): UseDeployGithubReturn {
 
         const serviceResult = await createService(serviceInput);
 
-        // Step 2: (Future) Connect GitHub repository to service
-        // This will be implemented in the next phase
-        // const githubConnectionResult = await connectGithubRepo({
-        //   serviceId: serviceResult.serviceId,
-        //   repoFullName: input.repoFullName,
+        // Step 2: Deploy the service instance immediately
+        await deployServiceInstance({
+          serviceId: serviceResult.serviceId,
+          environmentId: input.environmentId,
+        });
+
+        // Step 3: (Future) Deploy staged changes if needed
+        // await deployStagedChanges({
+        //   environmentId: input.environmentId,
+        //   skipDeploys: false,
         // });
 
         return {
@@ -62,12 +74,12 @@ export function useDeployGithub(): UseDeployGithubReturn {
         throw err;
       }
     },
-    [createService]
+    [createService, deployServiceInstance]
   );
 
   return {
     deployGithub,
-    isLoading: isCreatingService,
-    error: error || createError,
+    isLoading: isCreatingService || isDeployingService,
+    error: error || createError || deployError,
   };
 }

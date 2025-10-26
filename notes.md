@@ -150,3 +150,17 @@ variables
 {"query":"mutation serviceInstanceDeploy($serviceId: String!, $environmentId: String!, $commitSha: String, $latestCommit: Boolean) {\n  serviceInstanceDeploy(\n    serviceId: $serviceId\n    environmentId: $environmentId\n    commitSha: $commitSha\n    latestCommit: $latestCommit\n  )\n}","variables":{"serviceId":"dca6e804-8264-4a1a-9b14-fec2f81d0332","environmentId":"f3435432-dc8c-4e6f-9dc8-1e26695bf735","latestCommit":true},"operationName":"serviceInstanceDeploy"}
 
 {"query":"mutation stageEnvironmentChanges($environmentId: String!, $payload: EnvironmentConfig!) {\n  environmentStageChanges(environmentId: $environmentId, input: $payload) {\n    id\n  }\n}","variables":{"environmentId":"f3435432-dc8c-4e6f-9dc8-1e26695bf735","payload":{"services":{"498bd849-a889-493b-b748-7f29880a4491":{"variables":{"HELLO":{"value":"WORLD"}}}}}},"operationName":"stageEnvironmentChanges"}
+
+
+
+
+
+
+
+
+serviceInstanceDeployV2(
+    environmentId: "f3435432-dc8c-4e6f-9dc8-1e26695bf735"
+    serviceId: "d1dfcfbb-9e4b-48a4-9f6f-62f23941854a"
+  )
+
+  

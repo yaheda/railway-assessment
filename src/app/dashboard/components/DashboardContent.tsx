@@ -5,6 +5,7 @@ import { Plus, Power, Trash2, Container, Activity, Clock } from "lucide-react";
 import { useWorkspaces } from "@/hooks/useWorkspaces";
 import { useWorkspaceContext } from "@/context/WorkspaceContext";
 import { useEnvironmentStagedChanges } from "@/hooks/useEnvironmentStagedChanges";
+import { useDeployStagedChanges } from "@/hooks/useDeployStagedChanges";
 import { Button } from "@/components/ui/button";
 import { ProjectSelector } from "./ProjectSelector";
 import { EnvironmentSelector } from "./EnvironmentSelector";
@@ -24,12 +25,39 @@ export function DashboardContent() {
   const { stagedChanges, refetch: refetchStagedChanges } =
     useEnvironmentStagedChanges(selectedEnvironmentId || null);
 
+  // Hook for deploying staged changes
+  const {
+    deploy: deployStagedChanges,
+    isLoading: isDeployingStagedChanges,
+  } = useDeployStagedChanges();
+
   // Load staged changes when environment changes
   useEffect(() => {
     if (selectedEnvironmentId) {
       refetchStagedChanges();
     }
   }, [selectedEnvironmentId, refetchStagedChanges]);
+
+  // Handle deploying staged changes
+  const handleDeployStagedChanges = async () => {
+    if (!selectedEnvironmentId) return;
+
+    try {
+      await deployStagedChanges({
+        environmentId: selectedEnvironmentId,
+        commitMessage: "Deployed from Railway Assessment Dashboard",
+        skipDeploys: false,
+      });
+
+      // Refetch workspaces to update services list
+      await refetch();
+      // Refetch staged changes (should clear the alert)
+      await refetchStagedChanges();
+    } catch (error) {
+      // Error is handled in the StagedChangesAlert component
+      console.error("Failed to deploy staged changes:", error);
+    }
+  };
 
   // Get current workspace from context
   const currentWorkspace = useMemo(() => {
@@ -123,10 +151,8 @@ export function DashboardContent() {
         <div className="mb-8">
           <StagedChangesAlert
             stagedChanges={stagedChanges}
-            onDeploy={() => {
-              // Future: trigger deployment of staged changes
-              console.log("Deploy staged changes");
-            }}
+            onDeploy={handleDeployStagedChanges}
+            isDeploying={isDeployingStagedChanges}
           />
         </div>
       )}
