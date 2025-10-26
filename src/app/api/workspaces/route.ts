@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 
 // Types for Railway API response
+
+interface RailwayService {
+  id: string;
+  name: string;
+}
+
 interface RailwayServiceInstance {
   id: string;
   serviceName: string;
@@ -15,6 +21,10 @@ interface RailwayServiceInstance {
 }
 
 interface RailwayServiceEdge {
+  node: RailwayService;
+}
+
+interface RailwayServiceInstanceEdge {
   node: RailwayServiceInstance;
 }
 
@@ -22,7 +32,7 @@ interface RailwayEnvironment {
   name: string;
   id: string;
   serviceInstances?: {
-    edges: RailwayServiceEdge[];
+    edges: RailwayServiceInstanceEdge[];
   };
 }
 
@@ -35,6 +45,9 @@ interface RailwayProject {
   name: string;
   environments?: {
     edges: RailwayEnvironmentEdge[];
+  };
+  services?: {
+    edges: RailwayServiceEdge[];
   };
 }
 
@@ -53,6 +66,7 @@ interface RailwayWorkspace {
 interface TransformedServiceInstance {
   id: string;
   serviceName: string;
+  serviceId?: string;
   source?: {
     image?: string;
     repo?: string;
@@ -73,6 +87,12 @@ interface TransformedProject {
   id: string;
   name: string;
   environments: TransformedEnvironment[];
+  services: TransformedService[];
+}
+
+interface TransformedService {
+  id: string;
+  name: string;
 }
 
 interface TransformedWorkspace {
@@ -98,6 +118,14 @@ const WORKSPACES_QUERY = `
             node {
               name
               id
+              services {
+                edges {
+                  node {
+                    id
+                    name
+                  }
+                }
+              }
               environments {
                 edges {
                   node {
@@ -179,16 +207,21 @@ export async function GET() {
       projects: (ws.projects?.edges || []).map((edge) => ({
         id: edge.node.id,
         name: edge.node.name,
+        services: (edge.node.services?.edges || []).map((serviceEdge) => ({
+          id: serviceEdge.node.id,
+          name: serviceEdge.node.name,
+        })),
         environments: (edge.node.environments?.edges || []).map((envEdge, index) => ({
           id: `${edge.node.environments?.edges[index].node.id}`,
           name: envEdge.node.name,
           serviceInstances: (envEdge.node.serviceInstances?.edges || []).map(
-            (serviceEdge, serviceIndex) => ({
+            (serviceInstanceEdge, serviceIndex) => ({
               id: `${envEdge.node.serviceInstances?.edges[serviceIndex].node.id}`,
-              serviceName: serviceEdge.node.serviceName,
-              source: serviceEdge.node.source,
-              createdAt: serviceEdge.node.createdAt,
-              latestDeployment: serviceEdge.node.latestDeployment,
+              serviceName: serviceInstanceEdge.node.serviceName,
+              serviceId: edge.node.services?.edges[serviceIndex].node.id,
+              source: serviceInstanceEdge.node.source,
+              createdAt: serviceInstanceEdge.node.createdAt,
+              latestDeployment: serviceInstanceEdge.node.latestDeployment,
             })
           ),
         })),

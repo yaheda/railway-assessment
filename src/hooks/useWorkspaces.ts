@@ -14,6 +14,7 @@ export interface ServiceDeployment {
 export interface ServiceInstance {
   id: string;
   serviceName: string;
+  serviceId: string;
   source?: ServiceSource;
   createdAt?: string | Date;
   latestDeployment?: ServiceDeployment;

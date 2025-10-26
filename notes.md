@@ -163,4 +163,4 @@ serviceInstanceDeployV2(
     serviceId: "d1dfcfbb-9e4b-48a4-9f6f-62f23941854a"
   )
 
-  
+{"query":"mutation stageEnvironmentChanges($environmentId: String!, $payload: EnvironmentConfig!) {\n  environmentStageChanges(environmentId: $environmentId, input: $payload) {\n    id\n  }\n}","variables":{"environmentId":"f3435432-dc8c-4e6f-9dc8-1e26695bf735","payload":{"services":{"b52067c7-88bd-48a5-a5e1-1aa57e503c1e":{"isDeleted":true}}}},"operationName":"stageEnvironmentChanges"}

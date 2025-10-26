@@ -6,15 +6,33 @@ import { useWorkspaces } from "@/hooks/useWorkspaces";
 import { useWorkspaceContext } from "@/context/WorkspaceContext";
 import { useEnvironmentStagedChanges } from "@/hooks/useEnvironmentStagedChanges";
 import { useDeployStagedChanges } from "@/hooks/useDeployStagedChanges";
+import { useDeleteService } from "@/hooks/useDeleteService";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ProjectSelector } from "./ProjectSelector";
 import { EnvironmentSelector } from "./EnvironmentSelector";
 import { DeployServiceWizard } from "./DeployServiceWizard";
 import { StagedChangesAlert } from "./StagedChangesAlert";
 
+interface ServiceToDelete {
+  id: string;
+  name: string;
+}
+
 export function DashboardContent() {
   const { workspaces, isLoading: workspacesLoading, refetch } = useWorkspaces();
   const [deployWizardOpen, setDeployWizardOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState<ServiceToDelete | null>(null);
+  const { deleteService, isLoading: isDeletingService } = useDeleteService();
   const {
     selectedWorkspaceId,
     selectedProjectId,
@@ -138,6 +156,39 @@ export function DashboardContent() {
     }
   };
 
+  const handleDeleteClick = (serviceId: string, serviceName: string) => {
+    setServiceToDelete({ id: serviceId, name: serviceName });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!serviceToDelete || !selectedEnvironmentId) return;
+
+    try {
+      await deleteService({
+        serviceId: serviceToDelete.id,
+        environmentId: selectedEnvironmentId,
+      });
+
+      // Refetch workspaces to update services list
+      await refetch();
+      // Refetch staged changes
+      await refetchStagedChanges();
+
+      // Close dialog and clear state
+      setDeleteDialogOpen(false);
+      setServiceToDelete(null);
+    } catch (error) {
+      // Error is shown in the component
+      console.error("Failed to delete service:", error);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setServiceToDelete(null);
+  };
+
   return (
     <>
       <DeployServiceWizard
@@ -145,6 +196,31 @@ export function DashboardContent() {
         onOpenChange={setDeployWizardOpen}
         onDeploymentSuccess={handleDeploymentSuccess}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Service</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete {serviceToDelete?.name}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex gap-4">
+            <AlertDialogCancel onClick={handleCancelDelete}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              disabled={isDeletingService}
+              className="bg-red-500 hover:bg-red-600 text-white"
+            >
+              {isDeletingService ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <div className="max-w-7xl mx-auto">
       {/* Staged Changes Alert */}
       {stagedChanges && (
@@ -343,6 +419,7 @@ export function DashboardContent() {
                           <button
                             className="p-2 hover:bg-secondary/20 rounded-lg transition-colors"
                             title="Delete"
+                            onClick={() => handleDeleteClick(service.serviceId, service.serviceName)}
                           >
                             <Trash2 size={18} className="text-red-500" />
                           </button>
