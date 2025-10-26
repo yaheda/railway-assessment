@@ -212,7 +212,6 @@ export function DeployServiceWizard({
             <DeploymentSuccess
               workflowId={workflowId}
               templateName={selectedTemplate.name}
-              environmentId={selectedEnvironmentId || undefined}
               onSuccess={handleDeploymentSuccess}
             />
           )}
@@ -220,7 +219,6 @@ export function DeployServiceWizard({
             <DeploymentSuccess
               serviceId={serviceId}
               serviceName={selectedGithubRepo.name}
-              environmentId={selectedEnvironmentId || undefined}
               onSuccess={handleDeploymentSuccess}
               isGithubDeploy={true}
             />
