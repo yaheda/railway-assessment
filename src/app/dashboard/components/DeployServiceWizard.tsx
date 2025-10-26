@@ -16,6 +16,7 @@ import { DeployWizardFooter } from "./DeployWizardFooter"
 import { Template } from "@/hooks/useTemplates"
 import { GithubRepo } from "@/hooks/useGithubRepos"
 import { useDeploy, DeploymentInput } from "@/hooks/useDeploy"
+import { useDeployGithub, GithubDeployInput } from "@/hooks/useDeployGithub"
 import { useWorkspaceContext } from "@/context/WorkspaceContext"
 import { AlertCircle } from "lucide-react"
 
@@ -37,7 +38,12 @@ export function DeployServiceWizard({
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
   const [selectedGithubRepo, setSelectedGithubRepo] = useState<GithubRepo | null>(null)
   const [workflowId, setWorkflowId] = useState<string | null>(null)
-  const { deploy, isLoading: isDeploying } = useDeploy()
+  const [serviceId, setServiceId] = useState<string | null>(null)
+  const { deployTemplate, isLoading: isDeployingTemplate } = useDeploy()
+  const { deployGithub, isLoading: isDeployingGithub } = useDeployGithub()
+
+  // Use whichever deployment is active
+  const isDeploying = isDeployingTemplate || isDeployingGithub
 
   // Get selections from context
   const {
@@ -58,7 +64,7 @@ export function DeployServiceWizard({
     if (step === 2 && serviceType === "template" && !selectedTemplate) return
     if (step === 2 && serviceType === "github" && !selectedGithubRepo) return
 
-    // Handle deployment on step 3
+    // Handle deployment on step 3 for templates
     if (step === 3 && serviceType === "template" && selectedTemplate) {
       // Validate we have all selections
       if (!hasAllSelections) {
@@ -74,20 +80,33 @@ export function DeployServiceWizard({
           environmentId: selectedEnvironmentId!,
         }
 
-        const result = await deploy(deploymentInput)
+        const result = await deployTemplate(deploymentInput)
         setWorkflowId(result.workflowId)
         setStep(4)
       } catch (error) {
         // Error is handled in the confirmation step
-        console.error("Deployment failed:", error)
+        console.error("Template deployment failed:", error)
       }
       return
     }
 
-    // Handle deployment on step 3 for GitHub repos (skip deployment for now)
+    // Handle deployment on step 3 for GitHub repos
     if (step === 3 && serviceType === "github" && selectedGithubRepo) {
-      // Skip deployment logic for now as requested
-      setStep(4)
+      try {
+        const githubDeployInput: GithubDeployInput = {
+          projectId: selectedProjectId!,
+          environmentId: selectedEnvironmentId!,
+          repoName: selectedGithubRepo.name,
+          repoFullName: selectedGithubRepo.fullName,
+        }
+
+        const result = await deployGithub(githubDeployInput)
+        setServiceId(result.serviceId)
+        setStep(4)
+      } catch (error) {
+        // Error is handled in the confirmation step
+        console.error("GitHub deployment failed:", error)
+      }
       return
     }
 
@@ -106,6 +125,7 @@ export function DeployServiceWizard({
     setSelectedTemplate(null)
     setSelectedGithubRepo(null)
     setWorkflowId(null)
+    setServiceId(null)
     onOpenChange(false)
   }
 
@@ -188,17 +208,17 @@ export function DeployServiceWizard({
               isDeploying={isDeploying}
             />
           )}
-          {!shouldShowIncompleteError && step === 4 && selectedTemplate && (
+          {!shouldShowIncompleteError && step === 4 && selectedTemplate && workflowId && (
             <DeploymentSuccess
               workflowId={workflowId}
               templateName={selectedTemplate.name}
               onSuccess={handleDeploymentSuccess}
             />
           )}
-          {!shouldShowIncompleteError && step === 4 && selectedGithubRepo && !selectedTemplate && (
+          {!shouldShowIncompleteError && step === 4 && selectedGithubRepo && serviceId && (
             <DeploymentSuccess
-              workflowId={null}
-              templateName={selectedGithubRepo.name}
+              serviceId={serviceId}
+              serviceName={selectedGithubRepo.name}
               onSuccess={handleDeploymentSuccess}
               isGithubDeploy={true}
             />

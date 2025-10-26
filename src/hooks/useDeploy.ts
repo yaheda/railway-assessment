@@ -3,7 +3,7 @@ import { useCallback, useState } from "react";
 export interface DeploymentInput {
   workspaceId: string;
   templateId: string;
-  serializedConfig: Record<any, unknown>;
+  serializedConfig: Record<string, unknown>;
   projectId: string;
   environmentId: string;
 }
@@ -14,16 +14,20 @@ export interface DeploymentResult {
 }
 
 interface UseDeployReturn {
-  deploy: (input: DeploymentInput) => Promise<DeploymentResult>;
+  deployTemplate: (input: DeploymentInput) => Promise<DeploymentResult>;
   isLoading: boolean;
   error: string | null;
 }
 
+/**
+ * Hook to deploy services using Railway templates
+ * Handles the template deployment flow via templateDeployV2 mutation
+ */
 export function useDeploy(): UseDeployReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const deploy = useCallback(async (input: DeploymentInput): Promise<DeploymentResult> => {
+  const deployTemplate = useCallback(async (input: DeploymentInput): Promise<DeploymentResult> => {
     try {
       setError(null);
       setIsLoading(true);
@@ -63,7 +67,7 @@ export function useDeploy(): UseDeployReturn {
     }
   }, []);
 
-  return { deploy, isLoading, error };
+  return { deployTemplate, isLoading, error };
 }
 
 export interface WorkflowStatusResult {

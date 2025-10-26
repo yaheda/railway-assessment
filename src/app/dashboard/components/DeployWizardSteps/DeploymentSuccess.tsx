@@ -4,8 +4,10 @@ import { useEffect } from "react"
 import { CheckCircle } from "lucide-react"
 
 interface DeploymentSuccessProps {
-  workflowId: string | null
-  templateName: string
+  workflowId?: string | null
+  templateName?: string
+  serviceId?: string
+  serviceName?: string
   onSuccess?: () => void
   autoCloseDelay?: number
   isGithubDeploy?: boolean
@@ -14,10 +16,13 @@ interface DeploymentSuccessProps {
 export function DeploymentSuccess({
   workflowId,
   templateName,
+  serviceId,
+  serviceName,
   onSuccess,
   autoCloseDelay = 2500,
   isGithubDeploy = false,
 }: DeploymentSuccessProps) {
+  const displayName = isGithubDeploy ? serviceName : templateName
   // Auto-close after delay
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -47,7 +52,9 @@ export function DeploymentSuccess({
               Success!
             </h3>
             <p className="text-sm text-green-600/70 dark:text-green-300/70 mt-1">
-              {templateName} is being deployed to your environment
+              {isGithubDeploy
+                ? `${displayName} service has been created successfully`
+                : `${displayName} is being deployed to your environment`}
             </p>
           </div>
         </div>
@@ -59,6 +66,16 @@ export function DeploymentSuccess({
           <p className="text-sm text-muted-foreground mb-2">Workflow ID</p>
           <p className="font-mono text-sm bg-secondary/20 px-3 py-2 rounded break-all">
             {workflowId}
+          </p>
+        </div>
+      )}
+
+      {/* Service ID Card */}
+      {serviceId && isGithubDeploy && (
+        <div className="border border-border rounded-lg p-4 bg-card">
+          <p className="text-sm text-muted-foreground mb-2">Service ID</p>
+          <p className="font-mono text-sm bg-secondary/20 px-3 py-2 rounded break-all">
+            {serviceId}
           </p>
         </div>
       )}

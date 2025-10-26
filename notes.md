@@ -131,10 +131,11 @@ variables
 }
 
 
-
+// add changes to your environment
 {"query":"mutation stageEnvironmentChanges($environmentId: String!, $payload: EnvironmentConfig!) {\n  environmentStageChanges(environmentId: $environmentId, input: $payload) {\n    id\n  }\n}","variables":{"environmentId":"f3435432-dc8c-4e6f-9dc8-1e26695bf735","payload":{"services":{"a942dee6-cb2a-4a7c-aab6-5ae3ea26e4f3":{"isCreated":true,"source":{"branch":"main","repo":"yaheda/ioa"}}}}},"operationName":"stageEnvironmentChanges"}
 
 
+// will return the staged changes
 {"query":"query environmentConfig($environmentId: String!, $decryptVariables: Boolean, $decryptPatchVariables: Boolean) {\n  environment(id: $environmentId) {\n    id\n    config(decryptVariables: $decryptVariables)\n    serviceInstances {\n      edges {\n        node {\n          ...ServiceInstanceFields\n        }\n      }\n    }\n    volumeInstances {\n      edges {\n        node {\n          ...VolumeInstanceFields\n        }\n      }\n    }\n    bucketInstances {\n      edges {\n        node {\n          ...BucketInstanceFields\n        }\n      }\n    }\n  }\n  environmentStagedChanges(environmentId: $environmentId) {\n    id\n    createdAt\n    updatedAt\n    status\n    lastAppliedError\n    patch(decryptVariables: $decryptPatchVariables)\n  }\n}\n\nfragment ServiceInstanceFields on ServiceInstance {\n  id\n  isUpdatable\n  serviceId\n  environmentId\n  railpackInfo\n  latestDeployment {\n    ...LatestDeploymentFields\n  }\n}\n\nfragment LatestDeploymentFields on Deployment {\n  id\n  serviceId\n  projectId\n  environmentId\n  createdAt\n  updatedAt\n  statusUpdatedAt\n  status\n  staticUrl\n  suggestAddServiceDomain\n  meta\n}\n\nfragment VolumeInstanceFields on VolumeInstance {\n  id\n  volumeId\n  environmentId\n  serviceId\n  externalId\n  isPendingDeletion\n  deletedAt\n  state\n}\n\nfragment BucketInstanceFields on BucketInstance {\n  id\n  bucketId\n  environmentId\n  region\n}","variables":{"environmentId":"f3435432-dc8c-4e6f-9dc8-1e26695bf735","decryptVariables":true,"decryptPatchVariables":true},"operationName":"environmentConfig"}
 
 
@@ -145,3 +146,7 @@ variables
 
 {"query":"mutation environmentPatchCommitStaged($environmentId: String!, $message: String, $skipDeploys: Boolean) {\n  environmentPatchCommitStaged(\n    environmentId: $environmentId\n    commitMessage: $message\n    skipDeploys: $skipDeploys\n  )\n}","variables":{"environmentId":"f3435432-dc8c-4e6f-9dc8-1e26695bf735","skipDeploys":false},"operationName":"environmentPatchCommitStaged"}
 
+
+{"query":"mutation serviceInstanceDeploy($serviceId: String!, $environmentId: String!, $commitSha: String, $latestCommit: Boolean) {\n  serviceInstanceDeploy(\n    serviceId: $serviceId\n    environmentId: $environmentId\n    commitSha: $commitSha\n    latestCommit: $latestCommit\n  )\n}","variables":{"serviceId":"dca6e804-8264-4a1a-9b14-fec2f81d0332","environmentId":"f3435432-dc8c-4e6f-9dc8-1e26695bf735","latestCommit":true},"operationName":"serviceInstanceDeploy"}
+
+{"query":"mutation stageEnvironmentChanges($environmentId: String!, $payload: EnvironmentConfig!) {\n  environmentStageChanges(environmentId: $environmentId, input: $payload) {\n    id\n  }\n}","variables":{"environmentId":"f3435432-dc8c-4e6f-9dc8-1e26695bf735","payload":{"services":{"498bd849-a889-493b-b748-7f29880a4491":{"variables":{"HELLO":{"value":"WORLD"}}}}}},"operationName":"stageEnvironmentChanges"}
